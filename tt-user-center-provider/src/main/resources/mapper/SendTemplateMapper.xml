@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--客户映射 指定到dao接口 -->
+<mapper namespace="com.deepexi.user.mapper.SendTemplateMapper">
+
+    <select id="selectByCode" resultType="com.deepexi.user.domain.eo.SendTemplate">
+        select * from usc_send_template where code = #{code}
+    </select>
+
+</mapper>

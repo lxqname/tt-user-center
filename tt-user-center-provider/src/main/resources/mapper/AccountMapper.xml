@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--客户映射 指定到dao接口 -->
+<mapper namespace="com.deepexi.user.mapper.AccountMapper">
+    <resultMap type="com.deepexi.user.domain.dto.AccountDto" id="AccountDtoResult">
+        <result property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="name" column="name"/>
+        <result property="sex" column="sex"/>
+        <result property="registerTime" column="register_time"/>
+        <result property="lastLoginTime" column="last_login_time"/>
+        <result property="platformType" column="platform_type"/>
+        <result property="status" column="status"/>
+        <result property="tenantCode" column="tenant_code"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="dr" column="dr"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+      id,      username,      password,      phone,      email,      name,      sex,      register_time,      last_login_time,      platform_type,      status,      tenant_code,      created_at,      created_by,      updated_at,      updated_by,      version,      dr    </sql>
+
+    <select id="getByDto" resultType="com.deepexi.user.domain.eo.Account">
+        SELECT *
+        FROM usc_account
+        WHERE
+        tenant_code = #{tenantCode} AND dr = 0
+        AND (username = #{dto.username} OR phone = #{dto.username} OR email = #{dto.username})
+        <if test="dto.platformType != null">
+            AND platform_type = #{dto.platformType}
+        </if>
+        <if test="dto.excludeId != null and dto.excludeId != ''">
+            AND id != #{dto.excludeId}
+        </if>
+    </select>
+
+    <select id="getByDtoExcludePhone" resultType="com.deepexi.user.domain.eo.Account">
+        SELECT *
+        FROM usc_account
+        WHERE
+        tenant_code = #{tenantCode} AND dr = 0
+        AND (username = #{dto.username} OR email = #{dto.username})
+        <if test="dto.platformType != null">
+            AND platform_type = #{dto.platformType}
+        </if>
+        <if test="dto.excludeId != null and dto.excludeId != ''">
+            AND id != #{dto.excludeId}
+        </if>
+    </select>
+
+    <select id="getUsernameById" resultType="java.lang.String">
+        SELECT username
+        FROM usc_account
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateLastLoginTime">
+        UPDATE usc_account SET last_login_time = NOW() WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE usc_account SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <select id="listPrimaryAccount" resultType="com.deepexi.user.domain.eo.Account">
+        SELECT
+            a.id,
+            a.username,
+            a.phone,
+            a.email,
+            a.`name`,
+            a.sex,
+            a.register_time,
+            a.last_login_time,
+            a.platform_type,
+            a.`status`,
+            a.tenant_code,
+            a.created_at,
+            a.created_by,
+            a.updated_at,
+            a.updated_by
+        FROM usc_account AS a
+        INNER JOIN usc_account_tree AS ar ON a.id = ar.id
+        WHERE a.tenant_code = #{tenantCode} AND a.dr = 0 AND ar.tenant_code = #{tenantCode} AND ar.dr = 0
+            AND ar.`level` = 1
+            <if test="dto.username != null and dto.username != ''">
+                AND a.username LIKE CONCAT('%',#{dto.username},'%')
+            </if>
+            <if test="dto.status != null">
+                AND a.`status` = #{dto.status}
+            </if>
+            <if test="dto.platformType != null">
+                AND a.platform_type = #{dto.platformType}
+            </if>
+        ORDER BY a.register_time DESC
+    </select>
+
+    <select id="findList" resultType="com.deepexi.user.domain.eo.Account">
+        SELECT
+        id,
+        username,
+        phone,
+        email,
+        `name`,
+        sex,
+        register_time,
+        last_login_time,
+        platform_type,
+        `status`,
+        tenant_code,
+        created_at,
+        created_by,
+        updated_at,
+        updated_by
+        FROM
+        usc_account
+        WHERE tenant_code = #{tenantCode} AND dr = 0
+        <if test="dto.username != null and dto.username != ''">
+            AND username LIKE CONCAT('%',#{dto.username},'%')
+        </if>
+        <if test="dto.status != null">
+            AND `status` = #{dto.status}
+        </if>
+        <if test="dto.platformType != null">
+            AND platform_type = #{dto.platformType}
+        </if>
+        ORDER BY register_time DESC
+    </select>
+    <insert id="batchInsert">
+        INSERT INTO usc_account
+        ( id, username, password, phone, email, name, sex, register_time, last_login_time, platform_type, status,
+        tenant_code, created_at, created_by, updated_at, updated_by, version, dr)
+        VALUES
+        <foreach collection="eo" index="index" item="value" separator=",">
+            ( #{value.id}, #{value.username}, #{value.password}, #{value.phone}, #{value.email}, #{value.name},
+            #{value.sex}, #{value.registerTime}, #{value.lastLoginTime}, #{value.platformType}, #{value.status},
+            #{value.tenantCode}, #{value.createdAt}, #{value.createdBy}, #{value.updatedAt}, #{value.updatedBy},
+            #{value.version}, #{value.dr})
+        </foreach>
+    </insert>
+    <update id="batchUpdate">
+        INSERT INTO usc_account
+        ( id, username, password, phone, email, name, sex, register_time, last_login_time, platform_type, status,
+        tenant_code, created_at, created_by, updated_at, updated_by, version, dr)
+        VALUES
+        <foreach collection="eo" index="index" item="value" separator=",">
+            ( #{value.id}, #{value.username}, #{value.password}, #{value.phone}, #{value.email}, #{value.name},
+            #{value.sex}, #{value.registerTime}, #{value.lastLoginTime}, #{value.platformType}, #{value.status},
+            #{value.tenantCode}, #{value.createdAt}, #{value.createdBy}, #{value.updatedAt}, #{value.updatedBy},
+            #{value.version}, #{value.dr})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        id=values(id), username=values(username), password=values(password), phone=values(phone), email=values(email),
+        name=values(name), sex=values(sex), register_time=values(register_time),
+        last_login_time=values(last_login_time), platform_type=values(platform_type), status=values(status),
+        tenant_code=values(tenant_code), created_at=values(created_at), created_by=values(created_by),
+        updated_at=values(updated_at), updated_by=values(updated_by), version=values(version), dr=values(dr)
+    </update>
+    <update id="deleteByIds">
+        UPDATE usc_account set dr=1 where id in
+        <foreach collection="pks" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--客户映射 指定到dao接口 -->
+<mapper namespace="com.deepexi.user.mapper.AccountTreeMapper">
+    <resultMap type="com.deepexi.user.domain.dto.AccountTreeDto" id="AccountTreeDtoResult">
+        <result property="id" column="id"/>
+        <result property="pAccountId" column="p_account_id"/>
+        <result property="topAccountId" column="top_account_id"/>
+        <result property="code" column="code"/>
+        <result property="level" column="level"/>
+        <result property="tenantCode" column="tenant_code"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="dr" column="dr"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+      id,      p_account_id,      top_account_id,      code,      level,      tenant_code,      created_at,      created_by,      updated_at,      updated_by,      version,      dr    </sql>
+
+    <select id="listSub" resultType="java.lang.String">
+        SELECT id
+        FROM usc_account_tree
+        WHERE tenant_code = #{tenantCode} AND dr = 0
+            AND p_account_id = #{id} AND id != #{id}
+    </select>
+
+    <select id="listSubVo" resultType="com.deepexi.user.domain.vo.SubAccountVo">
+        SELECT
+            a.id,
+            a.username,
+            a.phone,
+            a.email,
+            a.`name`,
+            a.sex,
+            a.`status`,
+            `at`.`code`,
+            `at`.`level`,
+            a.created_at AS 'createdAt'
+        FROM
+            usc_account_tree AS `at`
+        INNER JOIN usc_account AS a ON `at`.id = a.id
+        WHERE a.tenant_code = #{tenantCode} AND a.dr = 0 AND `at`.tenant_code = #{tenantCode} AND `at`.dr = 0
+            <if test="dto.platformType != null">
+                AND a.platform_type = #{dto.platformType}
+            </if>
+            <if test="dto.status != null">
+                AND a.`status` = #{dto.status}
+            </if>
+            <if test="dto.username != null and dto.username != ''">
+                AND a.username LIKE CONCAT('%',#{dto.username},'%')
+            </if>
+            <if test="dto.phone != null and dto.phone != ''">
+                AND a.phone LIKE CONCAT('%',#{dto.phone},'%')
+            </if>
+            <if test="dto.ids != null and dto.ids.size() > 0">
+                AND a.id IN
+                <foreach collection="dto.ids" index="index" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        ORDER BY `at`.`level` ASC, a.created_at DESC
+    </select>
+
+    <select id="getSubVoByAccountId" resultType="com.deepexi.user.domain.vo.SubAccountVo">
+        SELECT
+            a.id,
+            a.username,
+            a.phone,
+            a.email,
+            a.`name`,
+            a.sex,
+            a.`status`,
+            `at`.`code`,
+            `at`.`level`,
+            a.created_at AS 'createdAt'
+        FROM
+            usc_account_tree AS `at`
+        INNER JOIN usc_account AS a ON `at`.id = a.id
+        WHERE a.dr = 0 AND `at`.dr = 0 AND a.id = #{accountId}
+    </select>
+
+    <select id="verifyCode" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM
+            usc_account_tree
+        WHERE
+            tenant_code = #{tenantCode}
+            AND dr = 0
+            AND `code` = #{code}
+            AND top_account_id = #{topAccountId}
+            <if test="id != null">
+                AND id != #{id}
+            </if>
+    </select>
+
+    <select id="findList" resultType="com.deepexi.user.domain.eo.AccountTree">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM usc_account_tree WHERE dr=0
+    </select>
+    <insert id="batchInsert">
+        INSERT INTO usc_account_tree
+        ( id, p_account_id, top_account_id, code, level, tenant_code, created_at, created_by, updated_at, updated_by,
+        version, dr)
+        VALUES
+        <foreach collection="eo" index="index" item="value" separator=",">
+            ( #{value.id}, #{value.pAccountId}, #{value.topAccountId}, #{value.code}, #{value.level},
+            #{value.tenantCode}, #{value.createdAt}, #{value.createdBy}, #{value.updatedAt}, #{value.updatedBy},
+            #{value.version}, #{value.dr})
+        </foreach>
+    </insert>
+    <update id="batchUpdate">
+        INSERT INTO usc_account_tree
+        ( id, p_account_id, top_account_id, code, level, tenant_code, created_at, created_by, updated_at, updated_by,
+        version, dr)
+        VALUES
+        <foreach collection="eo" index="index" item="value" separator=",">
+            ( #{value.id}, #{value.pAccountId}, #{value.topAccountId}, #{value.code}, #{value.level},
+            #{value.tenantCode}, #{value.createdAt}, #{value.createdBy}, #{value.updatedAt}, #{value.updatedBy},
+            #{value.version}, #{value.dr})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        id=values(id), p_account_id=values(p_account_id), top_account_id=values(top_account_id), code=values(code),
+        level=values(level), tenant_code=values(tenant_code), created_at=values(created_at),
+        created_by=values(created_by), updated_at=values(updated_at), updated_by=values(updated_by),
+        version=values(version), dr=values(dr)
+    </update>
+    <update id="deleteByIds">
+        UPDATE usc_account_tree set dr=1 where id in
+        <foreach collection="pks" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

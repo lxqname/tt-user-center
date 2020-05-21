@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--客户映射 指定到dao接口 -->
+<mapper namespace="com.deepexi.user.mapper.AccountShareRelationMapper">
+
+    <select id="getCountByTargetAccountId" resultType="java.lang.Integer">
+        SELECT COUNT(id)
+        FROM usc_account_share_relation
+        WHERE dr = 0 AND target_account_id = #{targetAccountId}
+    </select>
+
+    <select id="getByDto" resultType="com.deepexi.user.domain.eo.AccountShareRelation">
+        SELECT *
+        FROM usc_account_share_relation
+        WHERE dr = 0
+            <if test="dto.sourceAccountId != null and dto.sourceAccountId != ''">
+                AND source_account_id = #{dto.sourceAccountId}
+            </if>
+            <if test="dto.shareAccountId != null and dto.shareAccountId != ''">
+                AND share_account_id = #{dto.shareAccountId}
+            </if>
+            <if test="dto.targetAccountId != null and dto.targetAccountId != ''">
+                AND target_account_id = #{dto.targetAccountId}
+            </if>
+    </select>
+
+</mapper>

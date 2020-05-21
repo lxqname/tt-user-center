@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--客户映射 指定到dao接口 -->
+<mapper namespace="com.deepexi.user.mapper.LoginInfoMapper">
+    <resultMap type="com.deepexi.user.domain.dto.LoginInfoDto" id="LoginInfoDtoResult">
+        <result property="id" column="id"/>
+        <result property="accountId" column="account_id"/>
+        <result property="browser" column="browser"/>
+        <result property="address" column="address"/>
+        <result property="source" column="source"/>
+        <result property="loginTime" column="login_time"/>
+        <result property="tenantCode" column="tenant_code"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="dr" column="dr"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+      id,      account_id,      browser,      address,      source,      login_time,      tenant_code,      created_at,      created_by,      updated_at,      updated_by,      version,      dr    </sql>
+    <select id="findList" resultType="com.deepexi.user.domain.eo.LoginInfo">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM usc_login_info WHERE dr=0
+    </select>
+    <insert id="batchInsert">
+        INSERT INTO usc_login_info
+        ( id, account_id, browser, address, source, login_time, tenant_code, created_at, created_by, updated_at,
+        updated_by, version, dr)
+        VALUES
+        <foreach collection="eo" index="index" item="value" separator=",">
+            ( #{value.id}, #{value.accountId}, #{value.browser}, #{value.address}, #{value.source}, #{value.loginTime},
+            #{value.tenantCode}, #{value.createdAt}, #{value.createdBy}, #{value.updatedAt}, #{value.updatedBy},
+            #{value.version}, #{value.dr})
+        </foreach>
+    </insert>
+    <update id="batchUpdate">
+        INSERT INTO usc_login_info
+        ( id, account_id, browser, address, source, login_time, tenant_code, created_at, created_by, updated_at,
+        updated_by, version, dr)
+        VALUES
+        <foreach collection="eo" index="index" item="value" separator=",">
+            ( #{value.id}, #{value.accountId}, #{value.browser}, #{value.address}, #{value.source}, #{value.loginTime},
+            #{value.tenantCode}, #{value.createdAt}, #{value.createdBy}, #{value.updatedAt}, #{value.updatedBy},
+            #{value.version}, #{value.dr})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        id=values(id), account_id=values(account_id), browser=values(browser), address=values(address),
+        source=values(source), login_time=values(login_time), tenant_code=values(tenant_code),
+        created_at=values(created_at), created_by=values(created_by), updated_at=values(updated_at),
+        updated_by=values(updated_by), version=values(version), dr=values(dr)
+    </update>
+    <update id="deleteByIds">
+        UPDATE usc_login_info set dr=1 where id in
+        <foreach collection="pks" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

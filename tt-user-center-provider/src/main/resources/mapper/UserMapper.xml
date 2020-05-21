@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--客户映射 指定到dao接口 -->
+<mapper namespace="com.deepexi.user.mapper.UserMapper">
+    <resultMap type="com.deepexi.user.domain.vo.UserListVo" id="UserListVoResult">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="username" column="username"/>
+        <result property="name" column="name"/>
+        <result property="englishName" column="english_name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="sex" column="sex"/>
+        <result property="tenantCode" column="tenant_code"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="dr" column="dr"/>
+        <result property="accountId" column="account_id"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+      id,      code,      username,      name,      english_name,      phone,      email,      sex,      tenant_code,      created_at,      created_by,      updated_at,      updated_by,      version,      dr    </sql>
+
+    <select id="getByDto" resultType="com.deepexi.user.domain.eo.User">
+        SELECT *
+        FROM usc_user
+        WHERE
+        tenant_code = #{tenantCode} AND dr = 0
+        <if test="dto.code != null and dto.code != ''">
+            AND code = #{dto.code}
+        </if>
+        <if test="dto.excludeId != null and dto.excludeId != ''">
+            AND id != #{dto.excludeId}
+        </if>
+    </select>
+
+    <select id="findList" resultType="com.deepexi.user.domain.vo.UserListVo">
+        SELECT
+            u.*,
+            uar.account_id
+        FROM
+            usc_user AS u
+        INNER JOIN usc_user_account_relation AS uar ON u.id = uar.user_id
+        WHERE u.tenant_code = #{tenantCode} AND u.dr = 0
+            AND uar.tenant_code = #{tenantCode} AND uar.dr = 0
+        ORDER BY  u.created_at DESC
+    </select>
+    <insert id="batchInsert">
+        INSERT INTO usc_user
+        ( id, code, username, name, english_name, phone, email, sex, tenant_code, created_at, created_by, updated_at,
+        updated_by, version, dr)
+        VALUES
+        <foreach collection="eo" index="index" item="value" separator=",">
+            ( #{value.id}, #{value.code}, #{value.username}, #{value.name}, #{value.englishName}, #{value.phone},
+            #{value.email}, #{value.sex}, #{value.tenantCode}, #{value.createdAt}, #{value.createdBy},
+            #{value.updatedAt}, #{value.updatedBy}, #{value.version}, #{value.dr})
+        </foreach>
+    </insert>
+    <update id="batchUpdate">
+        INSERT INTO usc_user
+        ( id, code, username, name, english_name, phone, email, sex, tenant_code, created_at, created_by, updated_at,
+        updated_by, version, dr)
+        VALUES
+        <foreach collection="eo" index="index" item="value" separator=",">
+            ( #{value.id}, #{value.code}, #{value.username}, #{value.name}, #{value.englishName}, #{value.phone},
+            #{value.email}, #{value.sex}, #{value.tenantCode}, #{value.createdAt}, #{value.createdBy},
+            #{value.updatedAt}, #{value.updatedBy}, #{value.version}, #{value.dr})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        id=values(id), code=values(code), username=values(username), name=values(name),
+        english_name=values(english_name), phone=values(phone), email=values(email), sex=values(sex),
+        tenant_code=values(tenant_code), created_at=values(created_at), created_by=values(created_by),
+        updated_at=values(updated_at), updated_by=values(updated_by), version=values(version), dr=values(dr)
+    </update>
+    <update id="deleteByIds">
+        UPDATE usc_user set dr=1 where id in
+        <foreach collection="pks" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>
